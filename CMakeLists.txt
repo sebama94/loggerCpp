@@ -57,7 +57,6 @@ target_include_directories(${PROJECT_NAME}
 # Set compile features
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
-# Link nlohmann/json and fmt
 target_link_libraries(${PROJECT_NAME} 
     fmt::fmt
 )

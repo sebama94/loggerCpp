@@ -58,7 +58,7 @@ namespace utils {
      * @param level The log level to get the color for
      * @return String containing the ANSI color code
      */
-    static std::string getColorForLogLevel(LogLevel level) {
+    inline std::string getColorForLogLevel(LogLevel level) {
         switch (level) {
             case LogLevel::DEBUG: return COLOR_CYAN;
             case LogLevel::INFO: return COLOR_GREEN;
@@ -75,7 +75,7 @@ namespace utils {
      * @param level The log level to convert
      * @return String representation of the log level
      */
-    static std::string getLogLevelString(LogLevel level) noexcept
+    inline std::string getLogLevelString(LogLevel level) noexcept
     {
         switch (level)
         {
@@ -94,7 +94,7 @@ namespace utils {
      * @param levelString String representation of the log level
      * @return Corresponding LogLevel enum value
      */
-    static LogLevel stringToLogLevel(const std::string& levelString) noexcept
+    inline LogLevel stringToLogLevel(const std::string& levelString) noexcept
     {
         // TODO: Implement this 
         if (levelString == "DEBUG") return LogLevel::DEBUG;

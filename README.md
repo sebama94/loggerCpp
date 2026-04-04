@@ -45,6 +45,20 @@ The library is built around several key components:
 - Handles timestamp formatting and color coding
 - Source location tracking utilities
 
+### Log Levels and Sink Filtering
+
+The library supports multiple log levels and per-sink level filtering:
+
+#### Log Levels (in order of severity)
+- DEBUG: Detailed information for debugging
+- INFO: General information about program execution
+- WARNING: Potentially harmful situations
+- ERROR: Error events that might still allow the application to continue
+- CRITICAL: Very severe error events that may lead to program termination
+
+#### Sink Level Filtering
+Each sink can be configured with its own minimum log level. Messages below this level will be filtered out.
+
 ## Requirements
 
 - C++20 compatible compiler
