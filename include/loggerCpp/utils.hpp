@@ -19,12 +19,34 @@
 #define COLOR_CYAN    "\033[36m"
 #define COLOR_WHITE   "\033[37m"
 
-#define LOG_DEBUG(msg, ...) [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::DEBUG, std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
-#define LOG_INFO(msg, ...) [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::INFO, std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
-#define LOG_WARNING(msg, ...) [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::WARNING, std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
-#define LOG_ERROR(msg, ...) [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::ERROR, std::source_location::current(), fmt::format(msg, ##__VA_ARGS__)) 
+// <syslog.h> defines LOG_DEBUG, LOG_INFO, etc. as plain integers.
+// Undefine them before defining our function-like macros so they are
+// not silently overridden when syslog.h is pulled in transitively.
+#ifdef LOG_DEBUG
+#undef LOG_DEBUG
+#endif
+#ifdef LOG_INFO
+#undef LOG_INFO
+#endif
+#ifdef LOG_WARNING
+#undef LOG_WARNING
+#endif
+#ifdef LOG_ERROR
+#undef LOG_ERROR
+#endif
+#ifdef LOG_CRITICAL
+#undef LOG_CRITICAL
+#endif
+#ifdef LOG_TRACE
+#undef LOG_TRACE
+#endif
+
+#define LOG_DEBUG(msg, ...)    [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::DEBUG,    std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
+#define LOG_INFO(msg, ...)     [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::INFO,     std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
+#define LOG_WARNING(msg, ...)  [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::WARNING,  std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
+#define LOG_ERROR(msg, ...)    [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::ERROR,    std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
 #define LOG_CRITICAL(msg, ...) [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::CRITICAL, std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
-#define LOG_TRACE(msg, ...) [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::TRACE, std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
+#define LOG_TRACE(msg, ...)    [[unlikely]] LoggingEngine::getInstance().log(utils::LogLevel::TRACE,    std::source_location::current(), fmt::format(msg, ##__VA_ARGS__))
 
 
 

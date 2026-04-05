@@ -3,14 +3,18 @@
 #include <string_view>
 #include <memory>
 
+// sysLogSink.hpp pulls in <syslog.h> which defines LOG_DEBUG/LOG_INFO/etc.
+// as plain integers. It MUST be included before loggingEngine.hpp so that
+// utils.hpp can #undef those names and replace them with our function-like
+// macros AFTER syslog.h has already run.
+#ifdef __unix__
+#include "sysLogSink.hpp"
+#endif
 #include "loggingEngine.hpp"
 #include "consoleLogSink.hpp"
 #include "fileLogSink.hpp"
 #include "dataBaseLogSink.hpp"
 #include "networkLogSink.hpp"
-#ifdef __unix__
-#include "sysLogSink.hpp"
-#endif
 
 /**
  * @brief Configures the logging system with sinks and log levels.
