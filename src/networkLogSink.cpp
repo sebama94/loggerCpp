@@ -1,15 +1,10 @@
 #include "loggerCpp/networkLogSink.hpp"
 
-void NetworkLogSink::write(const utils::LogEvent& event) {
-    // TODO: Implement network logging
-    // This would send logs to a remote logging service
-    std::cerr << "Error: Network logging not implemented\n";
-    throw std::runtime_error("Network logging not implemented");
+NetworkLogSink::NetworkLogSink(std::string_view /*url*/) {
+    // TODO: implement TCP/UDP/HTTP transport
 }
 
-NetworkLogSink::NetworkLogSink(const std::string_view& url) {
-    // TODO: Implement network logging
-    // This would send logs to a remote logging service
-    std::cerr << "Error: Network logging not implemented\n";
-    throw std::runtime_error("Network logging not implemented");
+void NetworkLogSink::write(const utils::LogEvent& /*event*/) {
+    // TODO: implement network logging
+    // Do NOT throw here — write() is called from a noexcept context.
 }

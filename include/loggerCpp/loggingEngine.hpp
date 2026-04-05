@@ -63,10 +63,12 @@ public:
      * @param fmt Format string
      * @param args Arguments to format into the message
      */
-    template<typename... Args>
-    void log(utils::LogLevel level, const std::source_location& location, const std::string& fmt, Args&&... args) noexcept {
-        std::string formattedMessage = fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...));
-        utils::LogEvent event{level, formattedMessage, location};
+    // The LOG_* macros already call fmt::format before reaching here,
+    // so we just forward the pre-formatted message directly.
+    void log(utils::LogLevel level,
+             const std::source_location& location,
+             std::string message) noexcept {
+        utils::LogEvent event{level, std::move(message), location};
         processEvent(std::move(event));
     }
 

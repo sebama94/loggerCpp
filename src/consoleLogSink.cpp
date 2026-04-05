@@ -1,18 +1,19 @@
 #include "loggerCpp/consoleLogSink.hpp"
-
-#include <iostream>
 #include <format>
+#include <iostream>
 
 void ConsoleLogSink::write(const utils::LogEvent& event) {
-    // Format and output log level, timestamp, message and location
-    std::cout << std::format("{}[{}]\n[{}] {}{} (function_name: {} row:{})\n",
+    // ERROR and CRITICAL go to stderr; everything else to stdout.
+    auto& out = (event.level >= utils::LogLevel::ERROR) ? std::cerr : std::cout;
+
+    out << std::format("{}[{}]{} [{}] ({}:{}) {}\n",
         utils::getColorForLogLevel(event.level),
         utils::getLogLevelString(event.level),
-        event.timestamp,
         COLOR_RESET,
-        event.message,
+        event.timestamp,
         event.location.function_name(),
-        event.location.line()
-       );
+        event.location.line(),
+        event.message);
 
+    out.flush();
 }

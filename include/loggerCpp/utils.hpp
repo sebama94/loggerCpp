@@ -133,9 +133,16 @@ namespace utils {
             {
                 auto now = std::chrono::system_clock::now();
                 auto in_time_t = std::chrono::system_clock::to_time_t(now);
-                std::stringstream ss;
-                ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+                std::tm tm_buf{};
+                // std::localtime is not thread-safe; use the reentrant variant.
+                #ifdef _WIN32
+                localtime_s(&tm_buf, &in_time_t);
+                #else
+                localtime_r(&in_time_t, &tm_buf);
+                #endif
+                std::ostringstream ss;
+                ss << std::put_time(&tm_buf, "%Y-%m-%d %H:%M:%S");
                 return ss.str();
-            }; 
+            };
     };
 };

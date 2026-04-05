@@ -1,129 +1,87 @@
 #pragma once
-#include <string>
+
 #include <string_view>
+#include <memory>
 
 #include "loggingEngine.hpp"
-#include <fmt/core.h>
+#include "consoleLogSink.hpp"
+#include "fileLogSink.hpp"
+#include "dataBaseLogSink.hpp"
+#include "networkLogSink.hpp"
+#ifdef __unix__
+#include "sysLogSink.hpp"
+#endif
 
 /**
- * @brief Configuration manager class for setting up logging sinks and levels
- * 
- * This class manages the configuration of the logging system, including setting up
- * different types of logging sinks (console, file, network, database) and their 
- * associated log levels.
+ * @brief Configures the logging system with sinks and log levels.
+ *
+ * Each apply*Sink call accepts one or more minimum log levels. With fixed
+ * minimum-level routing a single level is usually enough; multiple levels
+ * create multiple independent sink instances (e.g. one sink per level).
+ *
+ * Example:
+ *   ConfigurationManager cfg;
+ *   cfg.applyConsoleSink(utils::LogLevel::DEBUG);          // console ≥ DEBUG
+ *   cfg.applyFileSink(utils::LogLevel::INFO, "app.log");   // file ≥ INFO
  */
 class ConfigurationManager {
 public:
-    /**
-     * @brief Default constructor
-     */
+    /// Sets global log level to DEBUG in debug builds, INFO in release.
     ConfigurationManager();
 
-    /**
-     * @brief Virtual destructor
-     */
+    /// Sets global log level explicitly.
+    explicit ConfigurationManager(utils::LogLevel logLevel);
+
     ~ConfigurationManager() noexcept = default;
-
-    /**
-     * @brief Deleted copy constructor to prevent copying
-     */
     ConfigurationManager(const ConfigurationManager&) = delete;
-
-    /**
-     * @brief Deleted copy assignment operator to prevent copying
-     */
     ConfigurationManager& operator=(const ConfigurationManager&) = delete;
-    
-    /**
-     * @brief Move constructor
-     * @note Allows efficient transfer of resources
-     */
     ConfigurationManager(ConfigurationManager&&) noexcept = default;
-
-    /**
-     * @brief Move assignment operator
-     * @return Reference to the moved ConfigurationManager
-     */
     ConfigurationManager& operator=(ConfigurationManager&&) noexcept = default;
 
-    /**
-     * @brief Constructs a ConfigurationManager with specified log level
-     * @param logLevel The global log level to set for the logger
-     */
-    explicit ConfigurationManager(const utils::LogLevel& logLevel);
+    // ── Console ─────────────────────────────────────────────────────────────
+    template<typename... Levels>
+        requires (sizeof...(Levels) >= 1) &&
+                 (std::same_as<std::remove_cvref_t<Levels>, utils::LogLevel> && ...)
+    void applyConsoleSink(Levels... levels) {
+        auto& logger = LoggingEngine::getInstance();
+        (logger.addSink(std::make_shared<ConsoleLogSink>(), levels), ...);
+    }
 
-    /**
-     * @brief Configures and adds multiple console sinks to the logger
-     * @param level1 First log level
-     * @param level2 Second log level
-     * @param level3 Third log level (optional)
-     * @param level4 Fourth log level (optional)
-     * @throws std::runtime_error if sink creation fails
-     */
-    void applyConsoleSink(const utils::LogLevel& level);
-    [[maybe_unused]] void applyConsoleSink(const utils::LogLevel& level1, const utils::LogLevel& level2);
-    [[maybe_unused]] void applyConsoleSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3);
-    [[maybe_unused]] void applyConsoleSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4);
-    [[maybe_unused]] void applyConsoleSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const utils::LogLevel& level5);
+    // ── File ────────────────────────────────────────────────────────────────
+    template<typename... Levels>
+        requires (sizeof...(Levels) >= 1) &&
+                 (std::same_as<std::remove_cvref_t<Levels>, utils::LogLevel> && ...)
+    void applyFileSink(std::string_view filename, Levels... levels) {
+        auto& logger = LoggingEngine::getInstance();
+        (logger.addSink(std::make_shared<FileLogSink>(filename), levels), ...);
+    }
 
-    /**
-     * @brief Configures and adds multiple file sinks to the logger
-     * @param filename The path and name of the log file
-     * @param level1 First log level
-     * @param level2 Second log level
-     * @param level3 Third log level (optional)
-     * @param level4 Fourth log level (optional)
-     * @throws std::runtime_error if file cannot be opened or sink creation fails
-     */
-    void applyFileSink(const utils::LogLevel& level, const std::string_view& filename);
-    [[maybe_unused]] void applyFileSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const std::string_view& filename);
-    [[maybe_unused]] void applyFileSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const std::string_view& filename);
-    [[maybe_unused]] void applyFileSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const std::string_view& filename);
-    [[maybe_unused]] void applyFileSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const utils::LogLevel& level5, const std::string_view& filename);
+    // ── Network ─────────────────────────────────────────────────────────────
+    template<typename... Levels>
+        requires (sizeof...(Levels) >= 1) &&
+                 (std::same_as<std::remove_cvref_t<Levels>, utils::LogLevel> && ...)
+    void applyNetworkSink(std::string_view url, Levels... levels) {
+        auto& logger = LoggingEngine::getInstance();
+        (logger.addSink(std::make_shared<NetworkLogSink>(url), levels), ...);
+    }
 
-    /**
-     * @brief Configures and adds multiple network sinks to the logger
-     * @param url The destination URL for network logging
-     * @param level1 First log level
-     * @param level2 Second log level
-     * @param level3 Third log level (optional)
-     * @param level4 Fourth log level (optional)
-     * @throws std::runtime_error if network connection fails or sink creation fails
-     */
-    void applyNetworkSink(const utils::LogLevel& level, const std::string_view& url);
-    [[maybe_unused]] void applyNetworkSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const std::string_view& url);
-    [[maybe_unused]] void applyNetworkSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const std::string_view& url);
-    [[maybe_unused]] void applyNetworkSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const std::string_view& url);
-    [[maybe_unused]] void applyNetworkSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const utils::LogLevel& level5, const std::string_view& url);
+    // ── Database ────────────────────────────────────────────────────────────
+    template<typename... Levels>
+        requires (sizeof...(Levels) >= 1) &&
+                 (std::same_as<std::remove_cvref_t<Levels>, utils::LogLevel> && ...)
+    void applyDataBaseSink(std::string_view database, Levels... levels) {
+        auto& logger = LoggingEngine::getInstance();
+        (logger.addSink(std::make_shared<DataBaseLogSink>(database), levels), ...);
+    }
 
-    /**
-     * @brief Configures and adds multiple database sinks to the logger
-     * @param database The database connection string
-     * @param level1 First log level
-     * @param level2 Second log level
-     * @param level3 Third log level (optional)
-     * @param level4 Fourth log level (optional)
-     * @throws std::runtime_error if database connection fails or sink creation fails
-     */
-    void applyDataBaseSink(const utils::LogLevel& level, const std::string_view& database);
-    [[maybe_unused]] void applyDataBaseSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const std::string_view& database);
-    [[maybe_unused]] void applyDataBaseSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const std::string_view& database);
-    [[maybe_unused]] void applyDataBaseSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const std::string_view& database);
-    [[maybe_unused]] void applyDataBaseSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const utils::LogLevel& level5, const std::string_view& database);
-
-    /**
-     * @brief Configures and adds multiple syslog sinks to the logger
-     * @param ident The string identifier to prepend to syslog messages
-     * @param level1 First log level
-     * @param level2 Second log level
-     * @param level3 Third log level (optional)
-     * @param level4 Fourth log level (optional)
-     */
-    #ifdef __unix__
-    void applySysLogSink(const utils::LogLevel& level, const std::string_view& ident);  
-    [[maybe_unused]] void applySysLogSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const std::string_view& ident);
-    [[maybe_unused]] void applySysLogSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const std::string_view& ident);
-    [[maybe_unused]] void applySysLogSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const std::string_view& ident);
-    [[maybe_unused]] void applySysLogSink(const utils::LogLevel& level1, const utils::LogLevel& level2, const utils::LogLevel& level3, const utils::LogLevel& level4, const utils::LogLevel& level5, const std::string_view& ident);
-    #endif
+#ifdef __unix__
+    // ── Syslog ──────────────────────────────────────────────────────────────
+    template<typename... Levels>
+        requires (sizeof...(Levels) >= 1) &&
+                 (std::same_as<std::remove_cvref_t<Levels>, utils::LogLevel> && ...)
+    void applySysLogSink(std::string_view ident, Levels... levels) {
+        auto& logger = LoggingEngine::getInstance();
+        (logger.addSink(std::make_shared<SysLogSink>(ident), levels), ...);
+    }
+#endif
 };

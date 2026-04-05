@@ -1,7 +1,6 @@
 #include "loggerCpp/logEventRouter.hpp"
 #include "loggerCpp/logSink.hpp"
 
-// Remove unnecessary constructor/destructor since we use =default in header
 void LogEventRouter::setLogLevel(utils::LogLevel level) noexcept {
     currentLogLevel = level;
 }
@@ -11,11 +10,14 @@ void LogEventRouter::addRoute(utils::LogLevel level, std::shared_ptr<LogSink> si
 }
 
 void LogEventRouter::routeEvent(const utils::LogEvent& event) noexcept {
-    // Use [[likely]] hint since most events should be at or above current level
-    if (event.level >= currentLogLevel) [[likely]] {
-        // Use contains() for cleaner check (C++23)
-        if (routes.contains(event.level)) [[likely]] {
-            for (const auto& sink : routes[event.level]) {
+    if (event.level < currentLogLevel) return;
+
+    // Deliver to every sink whose registered minimum level is <= event level.
+    // A sink added at DEBUG receives DEBUG, INFO, WARNING, ERROR, CRITICAL.
+    // A sink added at WARNING receives only WARNING, ERROR, CRITICAL.
+    for (auto& [minLevel, sinks] : routes) {
+        if (event.level >= minLevel) {
+            for (const auto& sink : sinks) {
                 sink->write(event);
             }
         }
