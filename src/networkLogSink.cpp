@@ -1,6 +1,6 @@
 #include "loggerCpp/networkLogSink.hpp"
 
-NetworkLogSink::NetworkLogSink(std::string_view /*url*/) {
+NetworkLogSink::NetworkLogSink(const std::string_view& /*url*/) {
     // TODO: implement TCP/UDP/HTTP transport
 }
 
