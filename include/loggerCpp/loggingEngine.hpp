@@ -110,7 +110,7 @@ private:
      */
 
     alignas(64) LogEventRouter router;                                                       ///< Event router for log messages
-    alignas(64) utils::LogLevel globalLogLevel;                                              ///< Global minimum log level
+    alignas(64) std::atomic<utils::LogLevel> globalLogLevel;                                 ///< Global minimum log level (atomic for lock-free reads)
     alignas(64) std::vector<std::pair<std::shared_ptr<LogSink>, utils::LogLevel>> sinks;    ///< Logging sinks with levels
     std::mutex sinkMutex;                                                                    ///< Mutex for sink operations
     alignas(64) std::queue<utils::LogEvent> eventQueue;                                      ///< Queue for async logging

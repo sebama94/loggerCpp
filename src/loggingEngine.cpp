@@ -11,8 +11,9 @@ LoggingEngine& LoggingEngine::getInstance() noexcept {
     return instance;
 }
 
-LoggingEngine::LoggingEngine() : globalLogLevel(utils::LogLevel::INFO), asyncMode(false), stopLogging(false) 
+LoggingEngine::LoggingEngine() : asyncMode(false), stopLogging(false)
 {
+    globalLogLevel.store(utils::LogLevel::INFO, std::memory_order_relaxed);
     startAsync();
 }
 
@@ -22,18 +23,19 @@ LoggingEngine::~LoggingEngine() noexcept {
 
 void LoggingEngine::setLogLevel(utils::LogLevel level) noexcept {
     std::lock_guard lock(sinkMutex);
-    globalLogLevel = level;
+    globalLogLevel.store(level, std::memory_order_relaxed);
     router.setLogLevel(level);
 }
 
 void LoggingEngine::addSink(std::shared_ptr<LogSink> sink, utils::LogLevel level) {
+    if (!sink) return;
     std::lock_guard lock(sinkMutex);
-    sinks.emplace_back(std::move(sink), level);
-    router.addRoute(level, sinks.back().first);
+    sinks.emplace_back(sink, level);
+    router.addRoute(level, std::move(sink));
 }
 
 void LoggingEngine::processEvent(const utils::LogEvent& event) noexcept {
-    if (event.level < globalLogLevel) [[unlikely]] return;
+    if (event.level < globalLogLevel.load(std::memory_order_relaxed)) [[unlikely]] return;
 
     if (asyncMode) {
         std::lock_guard lock(queueMutex);

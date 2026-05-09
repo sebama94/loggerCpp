@@ -1,9 +1,11 @@
 #include "loggerCpp/sysLogSink.hpp"
 #include <format>
 
-SysLogSink::SysLogSink(std::string_view ident, int facility) {
-    // Open syslog connection with specified identity and facility
-    openlog(ident.data(), LOG_PID | LOG_NDELAY, facility);
+SysLogSink::SysLogSink(std::string_view ident, int facility)
+    : identStr(ident)
+{
+    // openlog() does not copy ident — identStr owns the storage
+    openlog(identStr.c_str(), LOG_PID | LOG_NDELAY, facility);
 }
 
 SysLogSink::~SysLogSink() noexcept {

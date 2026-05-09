@@ -2,6 +2,7 @@
 
 #include "loggerCpp/logSink.hpp"
 
+#include <string>
 #include <string_view>
 #include <syslog.h>
 
@@ -38,9 +39,11 @@ public:
     void write(const utils::LogEvent& event) override;
 
 private:
+    std::string identStr; /**< Owning copy of the ident string (openlog does not copy it) */
+
     /**
      * @brief Converts LogLevel to syslog priority
-     * 
+     *
      * @param level The LogLevel to convert
      * @return The corresponding syslog priority
      */

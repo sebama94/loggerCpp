@@ -1,21 +1,22 @@
 #include "loggerCpp/logEventRouter.hpp"
 #include "loggerCpp/logSink.hpp"
 
-// Remove unnecessary constructor/destructor since we use =default in header
 void LogEventRouter::setLogLevel(utils::LogLevel level) noexcept {
+    std::unique_lock lock(routeMutex);
     currentLogLevel = level;
 }
 
 void LogEventRouter::addRoute(utils::LogLevel level, std::shared_ptr<LogSink> sink) noexcept {
+    std::unique_lock lock(routeMutex);
     routes[level].push_back(std::move(sink));
 }
 
 void LogEventRouter::routeEvent(const utils::LogEvent& event) noexcept {
-    // Use [[likely]] hint since most events should be at or above current level
+    std::shared_lock lock(routeMutex);
     if (event.level >= currentLogLevel) [[likely]] {
-        // Use contains() for cleaner check (C++23)
-        if (routes.contains(event.level)) [[likely]] {
-            for (const auto& sink : routes[event.level]) {
+        auto it = routes.find(event.level);
+        if (it != routes.end()) [[likely]] {
+            for (const auto& sink : it->second) {
                 sink->write(event);
             }
         }

@@ -6,11 +6,10 @@
 #include <fstream>
 
 /**
- * @brief File output sink for logging with buffered writes
- * 
+ * @brief File output sink for logging with immediate writes
+ *
  * This class implements a logging sink that writes log messages to a file.
- * It inherits from the LogSink base class and provides file-specific logging functionality
- * with buffered writes for improved performance.
+ * Each write is flushed immediately to ensure no messages are lost on crash.
  */
 class FileLogSink final : public LogSink {
 public:
@@ -33,6 +32,5 @@ public:
     void write(const utils::LogEvent& event) override;
 
 private:
-    alignas(64) std::ofstream fileName;  /**< Output file stream with cache line alignment */
-    static constexpr std::size_t BUFFER_SIZE = 8192; /**< Size of write buffer in bytes (8KB) */
+    alignas(64) std::ofstream fileName; /**< Output file stream with cache line alignment */
 };

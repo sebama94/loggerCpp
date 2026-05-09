@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <memory>
 #include <vector>
+#include <shared_mutex>
 
 class LogSink;
 
@@ -66,6 +67,7 @@ public:
     void routeEvent(const utils::LogEvent& event) noexcept;
 
 private:
-    alignas(64) std::unordered_map<utils::LogLevel, std::vector<std::shared_ptr<LogSink>>> routes; /**< Cache-aligned routing map supporting multiple sinks per level */
-    alignas(64) utils::LogLevel currentLogLevel{utils::LogLevel::INFO}; /**< Cache-aligned current log level */
+    mutable std::shared_mutex routeMutex;                                                              /**< Protects routes and currentLogLevel */
+    alignas(64) std::unordered_map<utils::LogLevel, std::vector<std::shared_ptr<LogSink>>> routes;    /**< Cache-aligned routing map supporting multiple sinks per level */
+    alignas(64) utils::LogLevel currentLogLevel{utils::LogLevel::INFO};                               /**< Cache-aligned current log level */
 };
